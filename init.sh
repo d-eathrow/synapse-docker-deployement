@@ -25,7 +25,7 @@ git clone https://github.com/joj0/synadm
 cd synadm
 sudo python3 setup.py install
 
-cd ..
+cd ../../
 
 echo "===== Pulling Docker Images ====="
 docker-compose pull
