@@ -12,14 +12,14 @@ echo "===== Building Docker Images ====="
 bash build.sh
 
 echo "===== Building Tools ====="
-cd ../
-cd tools/
+cd ..tools/
 
 git clone https://github.com/matrix-org/rust-synapse-compress-state
-cd rust-synapse-compress-state/synapse-auto-compressor
+cd rust-synapse-compress-state/synapse-auto-compressor/
 cargo build
 mv ../target/debug/synapse_auto_compressor ../../synapse_auto_compressor
 
+cd ../
 cd ../
 
 git clone https://github.com/joj0/synadm
