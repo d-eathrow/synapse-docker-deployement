@@ -356,29 +356,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-
-  synapse-federation-sender-4:
-    build: ./images/workers/synapse  
-    container_name: synapse-federation-sender-4
-    user: "991:991"
-    restart: unless-stopped
-    environment:
-      SYNAPSE_WORKER: synapse.app.federation_sender
-    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/federation4.yaml"]
-    volumes:  
-      - ./files:/data:Z
-      - ./bridges:/bridges:Z
-    depends_on:
-      - synapse
-    networks:
-      - matrix
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-
   synapse-federation-sender-3:
-    build: ./images/workers/synapse
+    build: ./images/synapse-worker-docker
     container_name: synapse-federation-sender-3
     user: "991:991"
     restart: unless-stopped
@@ -398,7 +377,7 @@ services:
       - ALL
 
   synapse-federation-sender-2:
-    build: ./images/workers/synapse
+    build: ./images/synapse-worker-docker
     container_name: synapse-federation-sender-2
     user: "991:991"
     restart: unless-stopped
@@ -416,9 +395,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL 
-
   synapse-federation-sender-1:
-    build: ./images/workers/synapse
+    build: ./images/synapse-worker-docker
     container_name: synapse-federation-sender-1
     user: "991:991"
     restart: unless-stopped
