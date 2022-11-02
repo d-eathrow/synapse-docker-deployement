@@ -1,0 +1,17 @@
+worker_app: synapse.app.generic_worker
+worker_name: sync2
+
+# The replication listener on the synapse to talk to.
+worker_replication_host: synapse
+worker_replication_http_port: 9093
+
+worker_main_http_uri: http://synapse:8008/
+
+worker_log_config: /data/log/sync2.yaml
+
+worker_listeners:
+  - type: http
+    port: 8081
+    x_forwarded: true
+    resources:
+      - names: [client, federation]

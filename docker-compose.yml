@@ -1,0 +1,444 @@
+version: '3'
+
+services:
+
+  synapse:
+    build: ./images/synapse-docker
+    restart: always
+    container_name: synapse
+    user: "991:991"
+    environment:
+      - SYNAPSE_CONFIG_DIR=/data
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+    volumes:
+      - ./files:/data:Z
+    depends_on:
+      - postgres
+    networks:
+      - matrix
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+  postgres:
+    image: docker.io/postgres:14.5-alpine
+    container_name: postgres
+    user: "70:70"
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - ./schemas:/var/lib/postgresql/data:Z
+    ports:
+      - 127.0.0.1:5432:5432
+    networks:
+      - matrix
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /var/run/postgresql:size=50M,mode=0770,uid=70,gid=70,noexec,nosuid,nodev
+
+  swag:
+    image: ghcr.io/linuxserver/swag
+    restart: always
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - URL=${SWAG_URL}
+      - SUBDOMAINS=${SWAG_SUBDOMAINS}
+      - VALIDATION=http
+      - EMAIL=${SWAG_EMAIL}
+      - ONLY_SUBDOMAINS=true
+    volumes:
+      - ./swag:/config:Z
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 443:443
+      - 80:80
+    networks:
+      - matrix
+      - registration
+      - adminer
+
+  pantalaimon:
+    build: ./images/pantalaimon
+    container_name: pantalaimon
+    restart: always
+    volumes:
+      - ./pantalaimon_data:/data:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  mjolnir:
+    build: ./images/mjolnir
+    container_name:  mjolnir
+    restart: always
+    volumes:
+      - ./mjolnir:/data:Z
+    depends_on:
+      - pantalaimon
+    networks:
+      - matrix
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  maubot:
+    image: dock.mau.dev/maubot/maubot:latest
+    container_name: maubot
+    restart: always
+    volumes:
+      - ./maubot:/data:Z
+    networks:
+      - matrix
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    networks:
+      - matrix
+      - adminer 
+
+  matrix-registration:
+    build: ./images/synapse-captcha
+    container_name: matrix-registration
+    restart: always
+    command: [
+                "--config-path=/data/config.yaml",
+                "serve"
+            ]
+    ports:
+      - 127.0.0.1:5000:5000
+    volumes:
+      - ./matrix-registration_data:/data:Z
+    networks:
+      - matrix
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    networks:
+      - matrix
+
+# WORKERS 
+
+  sync3:
+    build: ./images/synapse-worker-docker
+    container_name: sync3
+    user: "991:991"
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    restart: unless-stopped
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/sync3.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8092:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  sync2:
+    build: ./images/synapse-worker-docker
+    container_name: sync2
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/sync2.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8091:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  sync1:
+    build: ./images/synapse-worker-docker
+    container_name: sync1
+    user: "991:991"
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    restart: unless-stopped
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/sync1.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8090:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  additional2:
+    build: ./images/workers/synapse
+    container_name: additional2
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/additional2.yaml"]
+    volumes:  
+      - ./files:/data:Z      
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8086:8034
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  additional1:
+    build: ./images/workers/synapse
+    container_name: additional1
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/additional1.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8085:8034
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  event1:
+    build: ./images/workers/synapse
+    container_name: event1
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/event1.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8087:8034
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  event2:
+    build: ./images/workers/synapse
+    container_name: event2
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/event2.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8088:8034
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-generic-worker-3:
+    build: ./images/workers/synapse
+    container_name: synapse-generic-worker-3
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/worker3.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8082:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-generic-worker-2:
+    build: ./images/synapse-worker-docker
+    container_name: synapse-generic-worker-2
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/worker2.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8081:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-generic-worker-1:
+    build: ./images/synapse-worker-docker
+    container_name: synapse-generic-worker-1
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/worker1.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8080:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-federation-sender-4:
+    build: ./images/workers/synapse  
+    container_name: synapse-federation-sender-4
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.federation_sender
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/federation4.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-federation-sender-3:
+    build: ./images/workers/synapse
+    container_name: synapse-federation-sender-3
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.federation_sender
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/federation3.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  synapse-federation-sender-2:
+    build: ./images/workers/synapse
+    container_name: synapse-federation-sender-2
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.federation_sender
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/federation2.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL 
+
+  synapse-federation-sender-1:
+    build: ./images/workers/synapse
+    container_name: synapse-federation-sender-1
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.federation_sender
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/federation1.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+networks:
+  matrix:
+  registration:
+  adminer:
+  
