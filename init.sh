@@ -12,7 +12,8 @@ echo "===== Building Docker Images ====="
 bash build.sh
 
 echo "===== Building Tools ====="
-cd ..tools/
+cd ../
+cd tools/
 
 git clone https://github.com/matrix-org/rust-synapse-compress-state
 cd rust-synapse-compress-state/synapse-auto-compressor/
