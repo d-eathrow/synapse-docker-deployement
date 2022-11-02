@@ -13,6 +13,7 @@ bash build.sh
 
 echo "===== Building Tools ====="
 cd ../
+mkdir tools
 cd tools/
 
 git clone https://github.com/matrix-org/rust-synapse-compress-state
