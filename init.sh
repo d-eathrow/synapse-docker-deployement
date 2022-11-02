@@ -4,7 +4,7 @@ echo "===== Cloning Docker Images ====="
 cd images/
 git clone https://github.com/matrix-org/mjolnir
 git clone https://github.com/matrix-org/pantalaimon/
-git clone https://codberg.org/deathrow/synapse-worker-docker
+git clone https://codeberg.org/deathrow/synapse-worker-docker
 git clone https://codeberg.org/deathrow/synapse-docker
 git clone https://codeberg.org/deathrow/synapse-captcha
 
