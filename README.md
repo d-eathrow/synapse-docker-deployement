@@ -2,15 +2,17 @@
 
 A Synapse Docker deployment with:
 
-- Hardened Synapse Image
-- Hardened Worker Images
-- Mjolnir & Mjolnir Module
-- Multi-threaded Synapse Process via Workers
-- Privacy-respecting Registration Captcha
-- Manage Docker Variables inside of `.env`
+- Hardened Synapse image
+- Hardened worker images
+- Mjolnir & Mjolnir module
+- Multi-threaded Synapse process via workers
+- Privacy-respecting registration captcha
+- Manage Docker variables inside of `.env`
 - Manage `state` with the state compressor
-- Manage Server via `synadm`
-- Images Built Locally
+- Manage server via `synadm`
+- Images built locally
+- Matrix Maubot
+- Postgres web UI
 
 ### Getting Started
 
@@ -284,12 +286,18 @@ To bypass ratelimits for certain users:
 ``
 docker exec -it postgres psql insert into ratelimit_override values ('@user:example.tld', 0, 0);
 ``
+
 Your `mjolnir` and any other admin accounts should be set in the example above.
 
 For synapse state compressor:
 ``
 ./synapse_auto_compressor -p postgresql://user:password@localhost/db -c 500 -n 100
 ``
+### Todo
+
+- stream workers
+
+- Proper `sync` load balancing
 
 ### Links
 
