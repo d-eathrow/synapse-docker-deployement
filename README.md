@@ -13,10 +13,13 @@ A Synapse Docker deployment with:
 - Images built locally
 - Matrix Maubot
 - Postgres web UI
+- Matrix integration manager
 
 ### Getting Started
 
 Dependencies: `cargo docker docker-compose git python `
+
+Subdomains: `matrix` `dimension` `adminer` `maubot`
 
 Clone the repository:
 ```

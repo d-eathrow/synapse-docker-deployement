@@ -3,10 +3,11 @@
 echo "===== Cloning Docker Images ====="
 cd images/
 git clone https://github.com/matrix-org/mjolnir
-git clone https://github.com/matrix-org/pantalaimon/
+git clone https://github.com/matrix-org/pantalaimon
 git clone https://codeberg.org/deathrow/synapse-worker-docker
 git clone https://codeberg.org/deathrow/synapse-docker
 git clone https://codeberg.org/deathrow/synapse-captcha
+git clone https://github.com/turt2live/matrix-dimension
 
 echo "===== Building Docker Images ====="
 bash build.sh

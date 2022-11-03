@@ -103,7 +103,6 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-
   maubot:
     image: dock.mau.dev/maubot/maubot:latest
     container_name: maubot
@@ -142,6 +141,24 @@ services:
     restart: always
     networks:
       - matrix
+
+  dimension:
+    build: ./images/matrix-dimension
+    container_name:  dimension
+    restart: always
+    volumes:
+      - ./dimension:/data:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+      - 127.0.0.1:8184:8184
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
 # WORKERS 
 
