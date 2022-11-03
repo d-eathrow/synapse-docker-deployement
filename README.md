@@ -282,6 +282,21 @@ modules:
 
 The [synapse-captcha](https://codeberg.org/deathrow/synapse-captcha) is included with this deployment. Refer to this for configuration.
 
+### Dimension
+
+To setup dimension, refer to the [official documentation](https://github.com/turt2live/matrix-dimension/blob/master/docs/installing.md)
+
+For the database:
+
+```
+database:
+    uri: "postgres://admin:password@dimension:5432/dbname"
+    botData: "/data/bot.json"
+```
+
+These values are set in the `.env` file.
+
+
 ### Additional
 
 To bypass ratelimits for certain users:
