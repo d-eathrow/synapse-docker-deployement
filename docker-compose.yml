@@ -70,7 +70,6 @@ services:
     networks:
       - matrix
       - registration
-      - adminer
 
   pantalaimon:
     build: ./images/pantalaimon
@@ -111,14 +110,6 @@ services:
       - ./maubot:/data:Z
     networks:
       - matrix
-
-  adminer:
-    image: adminer
-    container_name: adminer
-    restart: unless-stopped
-    networks:
-      - matrix
-      - adminer 
 
   matrix-registration:
     build: ./images/synapse-captcha
@@ -186,6 +177,45 @@ services:
       - /var/run/postgresql:size=50M,mode=0770,uid=70,gid=70,noexec,nosuid,nodev
 
 # WORKERS 
+
+  sync5:
+    build: ./images/synapse-worker-docker
+    container_name: sync5
+    user: "991:991"
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    restart: unless-stopped
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/sync5.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8094:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+  sync4:
+    build: ./images/synapse-worker-docker
+    container_name: sync4
+    user: "991:991"
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    restart: unless-stopped
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/sync4.yaml"]
+    volumes:
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    ports:
+     - 127.0.0.1:8093:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   sync3:
     build: ./images/synapse-worker-docker
@@ -333,6 +363,28 @@ services:
     cap_drop:
       - ALL
 
+  synapse-generic-worker-4:
+    build: ./images/workers/synapse
+    container_name: synapse-generic-worker-4
+    user: "991:991"
+    restart: unless-stopped
+    environment:
+      SYNAPSE_WORKER: synapse.app.generic_worker
+    entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/worker4.yaml"]
+    volumes:  
+      - ./files:/data:Z
+      - ./bridges:/bridges:Z
+    depends_on:
+      - synapse
+    networks:
+      - matrix
+    ports:
+     - 127.0.0.1:8083:8081
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
   synapse-generic-worker-3:
     build: ./images/workers/synapse
     container_name: synapse-generic-worker-3
@@ -460,6 +512,5 @@ services:
 networks:
   matrix:
   registration:
-  adminer:
   dimension:
   
