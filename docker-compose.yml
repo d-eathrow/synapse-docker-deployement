@@ -24,7 +24,7 @@ services:
     - "host.docker.internal:host-gateway"
 
   postgres:
-    image: docker.io/postgres:14.5-alpine
+    image: docker.io/postgres:15-alpine
     container_name: postgres
     user: "70:70"
     restart: always
