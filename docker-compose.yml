@@ -283,6 +283,4 @@ services:
 
 networks:
   matrix:
-  registration:
-  dimension:
-  
+  registration:  
