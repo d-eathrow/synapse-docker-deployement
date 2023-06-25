@@ -133,49 +133,6 @@ services:
     networks:
       - matrix
 
-  dimension:
-    build: ./images/matrix-dimension
-    container_name:  dimension
-    restart: always
-    volumes:
-      - ./dimension:/data:Z
-    depends_on:
-      - dimension_db
-    networks:
-      - matrix
-      - dimension
-    ports:
-      - 127.0.0.1:8184:8184
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-
-  dimension_db:
-    image: docker.io/postgres:14.5-alpine
-    container_name: dimension_db
-    user: "70:70"
-    restart: always
-    environment:
-      - POSTGRES_USER=${DIMENSION_DB_USER}
-      - POSTGRES_PASSWORD=${DIMENSION_DB_PASSWORD}
-      - POSTGRES_DB=${DIMENSION_DB_DB}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
-    volumes:
-      - ./dimension/db:/var/lib/dimension_db/data:Z
-    ports:
-      - 127.0.0.1:5433:5432
-    networks:
-      - dimension
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    tmpfs:
-      - /var/run/postgresql:size=50M,mode=0770,uid=70,gid=70,noexec,nosuid,nodev
-
 # WORKERS 
 
   sync5:
