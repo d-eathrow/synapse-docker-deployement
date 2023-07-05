@@ -5,7 +5,7 @@ cd images/
 git clone https://github.com/matrix-org/mjolnir
 git clone https://github.com/matrix-org/pantalaimon
 git clone https://codeberg.org/deathrow/synapse-worker-docker
-git clone https://codeberg.org/deathrow/synapse-docker
+git clone https://codeberg.org/deathrow/synapse-docker-better
 git clone https://codeberg.org/deathrow/synapse-captcha
 
 echo "===== Building Docker Images ====="

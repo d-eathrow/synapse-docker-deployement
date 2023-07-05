@@ -4,7 +4,9 @@ A Synapse Docker deployment with:
 
 - Hardened Synapse image
 - Hardened worker images
-- Mjolnir & Mjolnir module
+- Custom Synapse image that fixes several bugs
+  - Default power-level for new rooms is 9001
+- Mjolnir & Mjolnir Synapse module
 - Multi-threaded Synapse process via workers
 - Privacy-respecting registration captcha
 - Manage Docker variables inside of `.env`
@@ -12,13 +14,12 @@ A Synapse Docker deployment with:
 - Manage server via `synadm`
 - Images built locally
 - Matrix Maubot
-- Matrix integration manager
 
 ### Getting Started
 
 Dependencies: `cargo` `docker` `docker-compose` `git` `python `
 
-Subdomains: `matrix` `dimension` `maubot`
+Subdomains: `matrix` `element` `maubot`
 
 Clone the repository:
 ```
@@ -73,6 +74,12 @@ Under the `listeners:` section, add the following:
     type: http
     resources:
      - names: [replication]
+```
+# For Metrics
+
+```
+  - type: metrics
+    port: 9000
 ```
 
 Under the `retention:` section, you are able to set retention of messages. 
