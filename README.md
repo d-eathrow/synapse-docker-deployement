@@ -1,4 +1,4 @@
-## Synapse Docker Deployement
+## Synapse Docker Deployment
 
 A Synapse Docker deployment with:
 
@@ -23,7 +23,7 @@ Subdomains: `matrix` `element` `maubot`
 
 Clone the repository:
 ```
-git clone https://codeberg.org/deathrow/synapse-docker-deployement
+git clone https://codeberg.org/deathrow/synapse-docker-deployment
 ```
 
 CD into the repository:
@@ -69,7 +69,9 @@ Modify the following:
 
 Under the `listeners:` section, add the following:
 
+
 ```
+# For Workers
   - port: 9093
     type: http
     resources:
@@ -149,6 +151,8 @@ federation_rr_transactions_per_room_per_second: 50
 
 Uncomment the `url_preview_enabled: true` and the setting to go with it:
 
+`url_preview_enabled: true`
+
 ```
 url_preview_ip_range_blacklist:
   - '127.0.0.0/8'
@@ -175,6 +179,8 @@ url_preview_ip_range_blacklist:
 If you wish to use the `url_preview_url_blacklist:` to blacklist certain URLs from being previewed, you can use the following settings:
 
 ```
+url_preview_url_blacklist:
+
 # blacklist all *.google.com URLs
   - netloc: 'google.com'
   - netloc: '*.google.com'
@@ -188,11 +194,13 @@ If you wish to use the `url_preview_url_blacklist:` to blacklist certain URLs fr
 
 If you wish to change the number of rounds used to generate a password hash, you may modify the ``bcrypt_rounds:`` setting.
 
-Uncomment ``inhibit_user_in_use_error: true``
+Add ``inhibit_user_in_use_error: true``
 
-Uncomment ``suppress_key_server_warning: true``
+Add ``suppress_key_server_warning: true``
 
-Uncomment ``send_federation: false`` and add the following:
+Add the following:
+
+``send_federation: false``
 
 ```
 federation_sender_instances:
@@ -201,9 +209,11 @@ federation_sender_instances:
   - federation3
 ```
 
-Under the `redis:` section, uncomment `` enabled: true`` and add the following settings:
+For redis, add the following:
 
 ```
+redis:
+  enabled: true
   host: redis
   port: 6379
 ```
@@ -287,21 +297,6 @@ modules:
 ### Captcha
 
 The [synapse-captcha](https://codeberg.org/deathrow/synapse-captcha) is included with this deployment. Refer to this for configuration.
-
-### Dimension
-
-To setup dimension, refer to the [official documentation](https://github.com/turt2live/matrix-dimension/blob/master/docs/installing.md)
-
-For the database:
-
-```
-database:
-    uri: "postgres://admin:password@dimension:5432/dbname"
-    botData: "/data/bot.json"
-```
-
-These values are set in the `.env` file.
-
 
 ### Additional
 
