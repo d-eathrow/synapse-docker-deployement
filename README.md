@@ -298,12 +298,67 @@ modules:
 
 The [synapse-captcha](https://codeberg.org/deathrow/synapse-captcha) is included with this deployment. Refer to this for configuration.
 
+### Synapse Maintenance
+
+Synapse will require maintenance.
+
+Postgres Docker shell:
+
+``
+docker exec -it postgres psql -U username database
+``
+
+- [Useful SQL](https://matrix-org.github.io/synapse/latest/usage/administration/useful_sql_for_admins.html)
+
+
+Deleting empty rooms with Python:
+
+```
+import requests
+import urllib
+
+token = '<TOKEN>'
+server = 'https://matrix.<SERVER NAME>.<TLD>'
+api_rooms = f'{server}/_synapse/admin/v1/rooms?dir=b&from=0&limit=20&order_by=joined_local_members&access_token={token}'
+delete_api = f'{server}/_synapse/admin/v1/rooms/'
+
+local_users = 0
+while local_users == 0:
+    r = requests.get(api_rooms)
+    print(r.text)
+    rooms = r.json()
+    headers = {
+        'authorization': f'Bearer {token}'
+    }
+    for room in rooms['rooms']:
+        local_users = room['joined_local_members']
+        if local_users == 0:
+            roomid = urllib.parse.quote(room['room_id'])
+            print('delete', delete_api + roomid)
+            r = requests.delete(delete_api + roomid, headers=headers, json={})
+            if r.status_code != 200:
+                print(r.text)
+                break
+        else:
+            print("there are local users in this room", room)
+            break
+print("Done.")
+```
+
+
 ### Additional
 
 To bypass ratelimits for certain users:
 
 ``
-docker exec -it postgres psql insert into ratelimit_override values ('@user:example.tld', 0, 0);
+docker exec -it postgres psql -U user db insert into ratelimit_override values ('@user:example.tld', 0, 0);
+``
+
+
+To set a server administrator:
+
+``
+UPDATE users SET admin = 1 WHERE name = '@user:example.tld';
 ``
 
 Your `mjolnir` and any other admin accounts should be set in the example above.
